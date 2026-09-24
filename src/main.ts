@@ -1,6 +1,15 @@
 import "./styles.css";
 import { audioPaths, loadOriginalAssets } from "./assets";
 import { CosmicRunGame, type GameEvent } from "./game";
+import {
+  LEADERBOARD_LIMIT,
+  getLocalHighscores,
+  loadHighscores,
+  normalizeName,
+  submitHighscore,
+  type HighscoreEntry,
+  type HighscoreSource,
+} from "./highscores";
 import { copy } from "./i18n";
 import { Renderer } from "./renderer";
 
@@ -62,7 +71,17 @@ const menuUi = findElement<HTMLElement>("#menu-ui");
 const playButton = findElement<HTMLButtonElement>("#play-button");
 const instructionsButton = findElement<HTMLButtonElement>("#instructions-button");
 const languageButton = findElement<HTMLButtonElement>("#language-button");
-const highScoreLabel = findElement<HTMLElement>("#high-score-label");
+const leaderboardList = findElement<HTMLOListElement>("#leaderboard-list");
+const leaderboardTitle = findElement<HTMLElement>("#leaderboard-title");
+const playerNameUi = findElement<HTMLElement>("#player-name-ui");
+const playerChoice = findElement<HTMLElement>("#player-choice");
+const playerNameFormPanel = findElement<HTMLElement>("#player-name-form-panel");
+const resumePlayerButton = findElement<HTMLButtonElement>("#resume-player-button");
+const resumePlayerName = findElement<HTMLElement>("#resume-player-name");
+const newPlayerButton = findElement<HTMLButtonElement>("#new-player-button");
+const playerNameForm = findElement<HTMLFormElement>("#player-name-form");
+const playerNameInput = findElement<HTMLInputElement>("#player-name");
+const playerNameStatus = findElement<HTMLElement>("#player-name-status");
 const translatedElements = Array.from(document.querySelectorAll<HTMLElement>("[data-i18n]"));
 
 async function bootstrap(): Promise<void> {
@@ -75,6 +94,52 @@ async function bootstrap(): Promise<void> {
   const audio = new GameAudio();
   let previousTime: number | undefined;
   let elapsedSeconds = 0;
+  let previousState = game.state;
+  let playerName = "";
+  let scoreSubmissionId = 0;
+  let leaderboardEntries: HighscoreEntry[] = getLocalHighscores().slice(0, LEADERBOARD_LIMIT);
+  let leaderboardSource: HighscoreSource = "local";
+
+  function renderLeaderboard(): void {
+    const text = copy[game.language];
+    leaderboardList.replaceChildren();
+    leaderboardTitle.textContent = leaderboardSource === "online" ? text.globalLeaderboard : text.yourHighestScores;
+
+    if (leaderboardEntries.length === 0) {
+      const emptyRow = document.createElement("li");
+      emptyRow.className = "leaderboard-empty";
+      emptyRow.textContent = text.noScores;
+      leaderboardList.append(emptyRow);
+      return;
+    }
+
+    for (const [index, entry] of leaderboardEntries.entries()) {
+      const row = document.createElement("li");
+      row.className = "leaderboard-row";
+
+      const rank = document.createElement("span");
+      rank.className = "leaderboard-rank";
+      rank.textContent = `${index + 1}.`;
+
+      const name = document.createElement("span");
+      name.className = "leaderboard-name";
+      name.textContent = entry.name;
+
+      const score = document.createElement("strong");
+      score.className = "leaderboard-score";
+      score.textContent = String(entry.score);
+
+      row.append(rank, name, score);
+      leaderboardList.append(row);
+    }
+  }
+
+  async function refreshLeaderboard(): Promise<void> {
+    const result = await loadHighscores();
+    leaderboardEntries = result.entries;
+    leaderboardSource = result.source;
+    renderLeaderboard();
+  }
 
   statusText.hidden = true;
 
@@ -94,13 +159,12 @@ async function bootstrap(): Promise<void> {
       }
     }
 
-    highScoreLabel.textContent = `${text.highScore}: ${game.highScore}`;
     languageButton.dataset.activeLanguage = game.language;
     languageButton.setAttribute("aria-label", text.languageAria);
   }
 
   function syncMenuVisibility(): void {
-    menuUi.hidden = game.state !== "menu";
+    menuUi.hidden = game.state !== "menu" || !playerNameUi.hidden;
   }
 
   function playEvents(events: GameEvent[]): void {
@@ -118,11 +182,73 @@ async function bootstrap(): Promise<void> {
   }
 
   function action(): void {
+    if (game.state === "menu") {
+      showPlayerMenu();
+      return;
+    }
+
     playEvents(game.pressAction());
   }
 
+  function showPlayerNameEntry(): void {
+    playerNameUi.hidden = false;
+    playerChoice.hidden = true;
+    playerNameFormPanel.hidden = false;
+    playerNameInput.value = playerName;
+    playerNameStatus.textContent = "";
+    syncMenuVisibility();
+    window.setTimeout(() => playerNameInput.focus(), 0);
+  }
+
+  function showPlayerMenu(): void {
+    if (!playerName) {
+      showPlayerNameEntry();
+      return;
+    }
+
+    playerNameUi.hidden = false;
+    playerChoice.hidden = false;
+    playerNameFormPanel.hidden = true;
+    resumePlayerName.textContent = playerName;
+    resumePlayerButton.setAttribute("aria-label", `${copy[game.language].resumeAs} ${playerName}`);
+    syncMenuVisibility();
+    window.setTimeout(() => resumePlayerButton.focus(), 0);
+  }
+
+  function hidePlayerNameEntry(): void {
+    playerNameUi.hidden = true;
+    playerChoice.hidden = true;
+    playerNameFormPanel.hidden = false;
+    syncMenuVisibility();
+  }
+
+  async function saveCurrentScore(): Promise<void> {
+    if (!playerName) {
+      return;
+    }
+
+    const submissionId = ++scoreSubmissionId;
+    const result = await submitHighscore(playerName, game.score);
+    if (submissionId !== scoreSubmissionId) {
+      return;
+    }
+
+    leaderboardEntries = result.entries;
+    leaderboardSource = result.source;
+    renderLeaderboard();
+  }
+
+  function syncGameState(): void {
+    const enteringGameOver = previousState !== "game-over" && game.state === "game-over";
+    if (enteringGameOver) {
+      void saveCurrentScore();
+    }
+
+    previousState = game.state;
+  }
+
   playButton.addEventListener("click", () => {
-    playEvents(game.selectMenu("play"));
+    showPlayerMenu();
   });
 
   instructionsButton.addEventListener("click", () => {
@@ -132,16 +258,56 @@ async function bootstrap(): Promise<void> {
   languageButton.addEventListener("click", () => {
     game.toggleLanguage();
     updateInterface();
+    renderLeaderboard();
+  });
+
+  resumePlayerButton.addEventListener("click", () => {
+    hidePlayerNameEntry();
+    playEvents(game.selectMenu("play"));
+  });
+
+  newPlayerButton.addEventListener("click", () => {
+    showPlayerNameEntry();
+    playerNameInput.value = "";
+  });
+
+  playerNameForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const name = normalizeName(playerNameInput.value);
+    if (!name) {
+      playerNameStatus.textContent = copy[game.language].nameRequired;
+      playerNameInput.focus();
+      return;
+    }
+
+    playerName = name;
+    playerNameInput.value = name;
+    hidePlayerNameEntry();
+    playEvents(game.selectMenu("play"));
   });
 
   window.addEventListener("keydown", (event) => {
     if (event.code === "Escape") {
       event.preventDefault();
+      if (!playerNameUi.hidden) {
+        hidePlayerNameEntry();
+        return;
+      }
+
       playEvents(game.returnToMenu());
       return;
     }
 
     if (event.code !== "Space") {
+      return;
+    }
+
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLButtonElement) {
+      return;
+    }
+
+    if (!playerNameUi.hidden) {
       return;
     }
 
@@ -151,7 +317,7 @@ async function bootstrap(): Promise<void> {
 
   gameCanvas.addEventListener("pointerdown", (event) => {
     event.preventDefault();
-    if (game.state === "menu") {
+    if (game.state === "menu" || !playerNameUi.hidden) {
       return;
     }
 
@@ -163,6 +329,7 @@ async function bootstrap(): Promise<void> {
     previousTime = now;
     elapsedSeconds += deltaSeconds;
     playEvents(game.update(deltaSeconds));
+    syncGameState();
     renderer.render(game, elapsedSeconds);
     updateInterface();
     syncMenuVisibility();
@@ -170,13 +337,14 @@ async function bootstrap(): Promise<void> {
     gameCanvas.dataset.playerY = String(Math.round(game.player.y));
     gameCanvas.dataset.score = String(game.score);
     const scoreLabel = game.language === "sv" ? "poäng" : "score";
-    const highScoreText = game.language === "sv" ? "högsta poäng" : "high score";
-    gameCanvas.setAttribute("aria-label", `Cosmic Run: ${game.state}, ${scoreLabel} ${game.score}, ${highScoreText} ${game.highScore}`);
+    gameCanvas.setAttribute("aria-label", `Cosmic Run: ${game.state}, ${scoreLabel} ${game.score}`);
     requestAnimationFrame(frame);
   }
 
   updateInterface();
+  renderLeaderboard();
   syncMenuVisibility();
+  void refreshLeaderboard();
   requestAnimationFrame(frame);
 }
 

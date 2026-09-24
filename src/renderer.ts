@@ -16,9 +16,23 @@ interface Star {
   phase: number;
 }
 
+interface Starfall {
+  startTime: number;
+  duration: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  size: number;
+  brightness: number;
+  tailLength: number;
+}
+
 export class Renderer {
   private readonly ctx: CanvasRenderingContext2D;
   private readonly stars: Star[];
+  private nextStarfallAt = 3.5;
+  private activeStarfall: Starfall | null = null;
 
   public constructor(canvas: HTMLCanvasElement, private readonly assets: OriginalAssets) {
     const ctx = canvas.getContext("2d");
@@ -71,6 +85,128 @@ export class Renderer {
     }
     ctx.globalAlpha = 1;
     ctx.shadowBlur = 0;
+    this.drawStarfall(elapsedSeconds);
+  }
+
+  private drawStarfall(elapsedSeconds: number): void {
+    if (this.activeStarfall && elapsedSeconds >= this.activeStarfall.startTime + this.activeStarfall.duration) {
+      this.activeStarfall = null;
+      this.nextStarfallAt = elapsedSeconds + 7.5 + Math.random() * 5;
+    }
+
+    if (!this.activeStarfall && elapsedSeconds >= this.nextStarfallAt) {
+      this.activeStarfall = this.createStarfall(elapsedSeconds);
+    }
+
+    const starfall = this.activeStarfall;
+    if (!starfall) {
+      return;
+    }
+
+    const progress = Math.min(1, Math.max(0, (elapsedSeconds - starfall.startTime) / starfall.duration));
+    const easedProgress = progress * progress * (3 - 2 * progress);
+    const deltaX = starfall.endX - starfall.startX;
+    const deltaY = starfall.endY - starfall.startY;
+    const distance = Math.sqrt(deltaX ** 2 + deltaY ** 2);
+    const headX = starfall.startX + deltaX * easedProgress;
+    const headY = starfall.startY + deltaY * easedProgress;
+    const directionX = deltaX / distance;
+    const directionY = deltaY / distance;
+    const tailX = headX - directionX * starfall.tailLength;
+    const tailY = headY - directionY * starfall.tailLength;
+    const visibility = Math.sin(progress * Math.PI) * starfall.brightness;
+    const { ctx } = this;
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.lineCap = "round";
+    ctx.shadowColor = "rgba(74, 218, 255, 0.95)";
+    ctx.shadowBlur = 18 * starfall.size;
+
+    const glow = ctx.createLinearGradient(tailX, tailY, headX, headY);
+    glow.addColorStop(0, "rgba(80, 214, 255, 0)");
+    glow.addColorStop(0.55, `rgba(80, 214, 255, ${0.18 * visibility})`);
+    glow.addColorStop(1, `rgba(194, 249, 255, ${0.9 * visibility})`);
+    ctx.strokeStyle = glow;
+    ctx.lineWidth = 22 * starfall.size;
+    ctx.beginPath();
+    ctx.moveTo(tailX, tailY);
+    ctx.lineTo(headX, headY);
+    ctx.stroke();
+
+    ctx.shadowBlur = 6 * starfall.size;
+    ctx.strokeStyle = `rgba(239, 255, 255, ${0.95 * visibility})`;
+    ctx.lineWidth = 5 * starfall.size;
+    ctx.beginPath();
+    ctx.moveTo(tailX, tailY);
+    ctx.lineTo(headX, headY);
+    ctx.stroke();
+
+    ctx.shadowBlur = 14 * starfall.size;
+    ctx.fillStyle = `rgba(255, 255, 255, ${visibility})`;
+    ctx.beginPath();
+    ctx.arc(headX, headY, 8 * starfall.size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  private createStarfall(startTime: number): Starfall {
+    const margin = 180;
+    const lane = Math.random();
+    const direction = Math.floor(Math.random() * 5);
+    let startX: number;
+    let startY: number;
+    let endX: number;
+    let endY: number;
+
+    if (direction === 0) {
+      // From the left, falling towards the right.
+      startX = -margin;
+      startY = 70 + lane * 250;
+      endX = GAME_WIDTH + margin;
+      endY = startY + 130 + Math.random() * 180;
+    } else if (direction === 1) {
+      // From the right, falling towards the left.
+      startX = GAME_WIDTH + margin;
+      startY = 70 + lane * 250;
+      endX = -margin;
+      endY = startY + 130 + Math.random() * 180;
+    } else if (direction === 2) {
+      // From above on the left, cutting down towards the right.
+      startX = 80 + lane * 450;
+      startY = -margin;
+      endX = startX + 560 + Math.random() * 400;
+      endY = GAME_HEIGHT + margin;
+    } else if (direction === 3) {
+      // From above on the right, cutting down towards the left.
+      startX = GAME_WIDTH - 80 - lane * 450;
+      startY = -margin;
+      endX = startX - 560 - Math.random() * 400;
+      endY = GAME_HEIGHT + margin;
+    } else {
+      // A rarer upward streak from the lower left to the upper right.
+      startX = -margin;
+      startY = GAME_HEIGHT - 90 - lane * 190;
+      endX = GAME_WIDTH + margin;
+      endY = -margin;
+    }
+
+    // A larger/brighter star is closer; a smaller/dimmer one reads as distant.
+    const depth = 0.25 + Math.random() * 0.75;
+    const size = 0.58 + depth * 0.82;
+    const brightness = 0.48 + depth * 0.52;
+
+    return {
+      startTime,
+      duration: 0.78 + Math.random() * 0.38 + depth * 0.12,
+      startX,
+      startY,
+      endX,
+      endY,
+      size,
+      brightness,
+      tailLength: 150 + size * 105,
+    };
   }
 
   private drawWorld(game: CosmicRunGame, elapsedSeconds: number): void {
@@ -90,7 +226,7 @@ export class Renderer {
 
     for (const obstacle of game.obstacles) {
       this.drawObstacle(obstacle);
-      if (!obstacle.coinCollected) {
+      if (obstacle.coinAvailable && !obstacle.coinCollected) {
         this.drawCoin(game.coinPosition(obstacle), elapsedSeconds);
       }
     }
@@ -213,11 +349,9 @@ export class Renderer {
     ctx.font = "36px Cosmic, Impact, sans-serif";
     ctx.fillText(String(game.score), 42, 70);
     ctx.textAlign = "right";
-    ctx.font = "20px Cosmic, Impact, sans-serif";
-    ctx.fillText(`${text.highShort} ${game.highScore}`, GAME_WIDTH - 38, 54);
     ctx.fillStyle = "#9fefff";
     ctx.font = "16px Cosmic, Impact, sans-serif";
-    ctx.fillText(text.escHud, GAME_WIDTH - 38, 80);
+    ctx.fillText(text.escHud, GAME_WIDTH - 38, 54);
   }
 
   private drawInstructions(game: CosmicRunGame): void {
@@ -267,11 +401,10 @@ export class Renderer {
     ctx.fillText("GAME OVER", GAME_WIDTH / 2, 286);
     ctx.font = "30px Cosmic, Impact, sans-serif";
     ctx.fillText(`${text.score} ${game.score}`, GAME_WIDTH / 2, 344);
-    ctx.fillText(`${text.highShort} ${game.highScore}`, GAME_WIDTH / 2, 384);
     ctx.font = "22px Cosmic, Impact, sans-serif";
     ctx.fillStyle = "#9fefff";
-    ctx.fillText(text.restart, GAME_WIDTH / 2, 448);
-    ctx.fillText(text.escBack, GAME_WIDTH / 2, 482);
+    ctx.fillText(text.restart, GAME_WIDTH / 2, 404);
+    ctx.fillText(text.escBack, GAME_WIDTH / 2, 438);
   }
 
   private drawRepeated(image: HTMLImageElement, width: number, height: number, step: number, offset: number, y: number): void {

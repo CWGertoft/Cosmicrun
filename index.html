@@ -34,8 +34,43 @@
 
           <img class="menu-character" src="/assets/original/player/run/1.png" alt="" />
 
-          <p id="high-score-label" class="menu-high-score">HÖGSTA POÄNG: 0</p>
+          <section class="leaderboard" aria-labelledby="leaderboard-title">
+            <div class="leaderboard-heading">
+              <h2 id="leaderboard-title">DINA HÖGSTA POÄNG</h2>
+            </div>
+            <ol id="leaderboard-list" class="leaderboard-list">
+              <li class="leaderboard-empty">ÄNNU INGA SPARADE POÄNG</li>
+            </ol>
+          </section>
+
           <p class="menu-escape" data-i18n="escMenu">ESC I SPELET TAR DIG TILL MENYN</p>
+        </section>
+      </div>
+
+      <div id="player-name-ui" class="player-name-ui" hidden>
+        <section class="player-name-card">
+          <div id="player-choice" class="player-choice" hidden>
+            <h2 id="player-choice-title" data-i18n="welcomeBack">VÄLKOMMEN TILLBAKA</h2>
+            <p class="player-choice-label" data-i18n="resumeAs">FORTSÄTT SOM</p>
+            <p id="resume-player-name" class="resume-player-name"></p>
+            <div class="player-choice-buttons">
+              <button id="resume-player-button" class="player-choice-button resume-player-button" type="button" data-i18n="resume">FORTSÄTT</button>
+              <button id="new-player-button" class="player-choice-button new-player-button" type="button" data-i18n="newPlayer">NY SPELARE</button>
+            </div>
+          </div>
+
+          <div id="player-name-form-panel">
+            <h2 id="player-name-title" data-i18n="playerNameTitle">VAD HETER DU?</h2>
+            <p class="player-name-hint" data-i18n="playerNameHint">SKRIV IN DITT NAMN INNAN DU BÖRJAR</p>
+            <form id="player-name-form" class="score-form">
+              <label for="player-name" data-i18n="playerNameLabel">DITT NAMN</label>
+              <div class="score-form-row">
+                <input id="player-name" name="name" type="text" maxlength="16" autocomplete="nickname" required />
+                <button id="start-game-button" type="submit" data-i18n="startGame">STARTA SPELET</button>
+              </div>
+            </form>
+            <p id="player-name-status" class="score-form-status" aria-live="polite"></p>
+          </div>
         </section>
       </div>
 

@@ -13,6 +13,16 @@ npm run dev
 
 Öppna sedan adressen som Vite visar, normalt `http://127.0.0.1:5173`.
 
+## Online-highscore
+
+Highscore-systemet använder MongoDB Atlas via `api/highscores.ts`. Spelaren skriver in sitt namn innan första rundan, och poängen sparas automatiskt när rundan tar slut. Frontend-klienten försöker först spara och läsa global topp 3 online. Om API:t eller databasen är otillgänglig visas och sparas i stället lokala rekord i webbläsarens `localStorage`.
+
+Skapa en lokal `.env`-fil och fyll i `MONGODB_URI`. Lägg aldrig MongoDB-URL:en i en variabel som börjar med `VITE_` — sådana variabler byggs in i frontend-bundlen. `.env` är ignorerad av Git och ska inte checkas in.
+
+När projektet deployas till Vercel lägger du in samma `MONGODB_URI`, `MONGODB_DB_NAME`, `MONGODB_COLLECTION` och vid behov `ALLOWED_ORIGIN` som Environment Variables i projektets inställningar. Om API:t ligger på samma origin behövs normalt ingen `VITE_HIGHSCORE_API_URL`; standardvärdet är `/api/highscores`.
+
+Lokal `npm run dev` kör den statiska Vite-servern och faller därför tillbaka till lokala rekord om inte API:t körs via exempelvis `vercel dev` eller en separat deployad API-URL.
+
 För en statisk production-build:
 
 ```bash

@@ -11,6 +11,7 @@ export type GameEvent = "begin" | "coin" | "death" | "menu";
 const OBSTACLE_WIDTH = 224;
 const FIRST_OBSTACLE_X = 760;
 const OBSTACLE_DISTANCE = 540;
+const COIN_SPAWN_CHANCE = 0.35;
 const OBSTACLE_HIT_WIDTH = 44;
 const OBSTACLE_GAP_PADDING = 34;
 const LANDING_PLATFORM_WIDTH = 188;
@@ -25,7 +26,6 @@ const RUN_SPEED = 255;
 export class CosmicRunGame {
   public state: GameState = "menu";
   public score = 0;
-  public highScore = this.readHighScore();
   public language: Language = this.readLanguage();
   public distance = 0;
   public readonly player: Player;
@@ -127,7 +127,7 @@ export class CosmicRunGame {
         this.addScore();
       }
 
-      if (!obstacle.coinCollected && this.collidesWithCoin(obstacle)) {
+      if (obstacle.coinAvailable && !obstacle.coinCollected && this.collidesWithCoin(obstacle)) {
         obstacle.coinCollected = true;
         this.addScore();
         events.push("coin");
@@ -182,7 +182,7 @@ export class CosmicRunGame {
   }
 
   public get coinPosition(): (obstacle: Obstacle) => { x: number; y: number } {
-    return (obstacle) => ({ x: obstacle.x + 8, y: obstacle.gapCenter + obstacle.coinYOffset });
+    return (obstacle) => ({ x: obstacle.x + OBSTACLE_DISTANCE / 2, y: obstacle.gapCenter + obstacle.coinYOffset });
   }
 
   private resetRun(): void {
@@ -222,6 +222,7 @@ export class CosmicRunGame {
       gapCenter: this.randomBetween(342, 416),
       gapHeight: this.randomBetween(332, 366),
       width: OBSTACLE_WIDTH,
+      coinAvailable: this.randomBetween(0, 1) < COIN_SPAWN_CHANCE,
       scored: false,
       coinCollected: false,
       coinYOffset: this.randomBetween(-14, 14),
@@ -287,14 +288,11 @@ export class CosmicRunGame {
     this.player.dead = true;
     this.player.deathTime = 0;
     this.state = "game-over";
-    this.highScore = Math.max(this.highScore, this.score);
-    this.saveHighScore();
     return ["death"];
   }
 
   private addScore(): void {
     this.score += 1;
-    this.highScore = Math.max(this.highScore, this.score);
   }
 
   private randomBetween(min: number, max: number): number {
@@ -302,27 +300,11 @@ export class CosmicRunGame {
     return min + (this.randomState / 0x1_0000_0000) * (max - min);
   }
 
-  private readHighScore(): number {
-    try {
-      return Number.parseInt(localStorage.getItem("cosmic-run-high-score") ?? "0", 10) || 0;
-    } catch {
-      return 0;
-    }
-  }
-
   private readLanguage(): Language {
     try {
       return localStorage.getItem("cosmic-run-language") === "en" ? "en" : "sv";
     } catch {
       return "sv";
-    }
-  }
-
-  private saveHighScore(): void {
-    try {
-      localStorage.setItem("cosmic-run-high-score", String(this.highScore));
-    } catch {
-      // Local storage may be unavailable in restricted browser contexts.
     }
   }
 

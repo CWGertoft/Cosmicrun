@@ -132,11 +132,70 @@ canvas {
   z-index: 3;
 }
 
-.menu-high-score {
-  margin: clamp(1.8rem, 4vw, 3.2rem) 0 0;
-  color: #a7e9ff;
-  font-size: clamp(1.15rem, 2.35vw, 1.45rem);
+.leaderboard {
+  width: min(48.5rem, 68%);
+  margin: clamp(2rem, 4vw, 3rem) auto 0;
+  color: #eaffff;
+}
+
+.leaderboard-heading {
+  margin-bottom: 0.8rem;
+  text-align: center;
+}
+
+.leaderboard-heading h2 {
+  margin: 0;
+  color: #effeff;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
   line-height: 1;
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 0.3rem;
+  width: min(20rem, 100%);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 1.55rem;
+  padding: 0.18rem 0;
+  color: #bcf5ff;
+  font-family: Cosmic, Impact, sans-serif;
+  font-size: clamp(0.75rem, 1.45vw, 0.92rem);
+  text-align: left;
+}
+
+.leaderboard-row:not(:last-child) {
+  border-bottom: 1px solid rgba(102, 224, 255, 0.18);
+}
+
+.leaderboard-rank {
+  color: #65dfff;
+  text-align: right;
+}
+
+.leaderboard-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-score {
+  color: #ffffff;
+  font-size: 1.05em;
+}
+
+.leaderboard-empty {
+  color: #79dfff;
+  font-size: clamp(0.67rem, 1.3vw, 0.84rem);
+  text-align: center;
 }
 
 .menu-escape {
@@ -144,6 +203,172 @@ canvas {
   color: #a7e9ff;
   font-size: clamp(0.8rem, 1.65vw, 1rem);
   line-height: 1;
+}
+
+.player-name-ui {
+  position: absolute;
+  inset: 12px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.player-name-ui[hidden] {
+  display: none;
+}
+
+.player-name-card {
+  width: min(32rem, 88%);
+  padding: clamp(1.35rem, 4vw, 2.2rem);
+  border: 2px solid rgba(77, 220, 255, 0.95);
+  border-radius: 1.5rem;
+  color: #effeff;
+  background: linear-gradient(135deg, rgba(3, 30, 58, 0.98), rgba(2, 13, 28, 0.98));
+  box-shadow: 0 0 30px rgba(0, 191, 255, 0.54), inset 0 0 22px rgba(92, 223, 255, 0.1);
+  pointer-events: auto;
+  text-align: center;
+}
+
+.player-name-card h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1;
+}
+
+.player-name-hint {
+  margin: 0.9rem 0 1.2rem;
+  color: #a7e9ff;
+  font-size: clamp(0.72rem, 1.5vw, 0.92rem);
+  line-height: 1.2;
+}
+
+.player-choice {
+  display: grid;
+  gap: 0.9rem;
+  text-align: center;
+}
+
+.player-choice[hidden],
+.player-name-form-panel[hidden] {
+  display: none;
+}
+
+.player-choice h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1;
+}
+
+.player-choice-label {
+  margin: 0;
+  color: #a7e9ff;
+  font-size: clamp(0.78rem, 1.5vw, 0.95rem);
+}
+
+.resume-player-name {
+  margin: -0.35rem 0 0.1rem;
+  color: #ffffff;
+  font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+}
+
+.player-choice-buttons {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.35rem;
+}
+
+.player-choice-button {
+  min-height: 2.8rem;
+  padding: 0 1rem;
+  border: 1px solid rgba(118, 229, 255, 0.92);
+  border-radius: 0.65rem;
+  color: #effeff;
+  font: inherit;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.resume-player-button {
+  background: rgba(8, 83, 132, 0.92);
+}
+
+.new-player-button {
+  background: rgba(2, 49, 83, 0.86);
+}
+
+.player-choice-button:hover,
+.player-choice-button:focus-visible {
+  outline: none;
+  border-color: #ffffff;
+  box-shadow: 0 0 16px rgba(126, 235, 255, 0.82);
+}
+
+.score-form {
+  display: grid;
+  gap: 0.45rem;
+  text-align: left;
+}
+
+.score-form label {
+  color: #79dfff;
+  font-size: 0.76rem;
+}
+
+.score-form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.55rem;
+}
+
+.score-form input {
+  min-width: 0;
+  min-height: 2.8rem;
+  padding: 0 0.8rem;
+  border: 1px solid rgba(118, 229, 255, 0.82);
+  border-radius: 0.65rem;
+  color: #effeff;
+  background: rgba(0, 8, 20, 0.82);
+  font: inherit;
+  outline: none;
+}
+
+.score-form input:focus {
+  border-color: #ffffff;
+  box-shadow: 0 0 14px rgba(118, 229, 255, 0.62);
+}
+
+.score-form button {
+  min-height: 2.8rem;
+  padding: 0 1rem;
+  border: 1px solid rgba(118, 229, 255, 0.92);
+  border-radius: 0.65rem;
+  color: #effeff;
+  background: rgba(8, 83, 132, 0.92);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.score-form button:hover,
+.score-form button:focus-visible {
+  outline: none;
+  border-color: #ffffff;
+  box-shadow: 0 0 16px rgba(126, 235, 255, 0.82);
+}
+
+.score-form button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.score-form-status {
+  min-height: 1.15rem;
+  margin: 0.75rem 0 0;
+  color: #8ceaff;
+  font-size: 0.74rem;
+  line-height: 1.2;
 }
 
 .language-button {
@@ -227,6 +452,10 @@ canvas {
   }
 
   .menu-panels {
+    width: min(34rem, 84%);
+  }
+
+  .leaderboard {
     width: min(34rem, 84%);
   }
 

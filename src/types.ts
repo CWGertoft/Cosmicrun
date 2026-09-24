@@ -14,6 +14,7 @@ export interface Obstacle {
   gapCenter: number;
   gapHeight: number;
   width: number;
+  coinAvailable: boolean;
   scored: boolean;
   coinCollected: boolean;
   coinYOffset: number;

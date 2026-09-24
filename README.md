@@ -1,6 +1,6 @@
 # Cosmic Run
 
-Cosmic Run utvecklades ursprungligen av mig som gymnasiearbete. Originalversionen programmerades i C# med Unity, och jag ansvarade själv för spelets programmering och kreativa produktion. Grafik/design och musik som ingår här kommer från det ursprungliga arbetet.
+[Cosmic Run](https://cosmicrun.vercel.app) utvecklades ursprungligen av mig som gymnasiearbete. Originalversionen programmerades i C# med Unity, och jag ansvarade själv för spelets programmering och kreativa produktion. Grafik/design och musik som ingår här kommer från det ursprungliga arbetet.
 
 Det här repositoryt är en senare webbport av originalet till TypeScript. Syftet är att bevara Cosmic Run och göra spelet enkelt att köra direkt i en modern webbläsare — inte att få det att se ut som ett nytt spel.
 

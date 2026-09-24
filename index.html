@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#020611" />
+    <meta name="description" content="Cosmic Run — webbport av ett ursprungligt C#-spel." />
+    <title>Cosmic Run</title>
+  </head>
+  <body>
+    <main class="game-shell">
+      <canvas id="game" width="1280" height="720" aria-label="Cosmic Run"></canvas>
+
+      <div id="menu-ui" class="menu-ui" hidden>
+        <button id="language-button" class="language-button" type="button" aria-label="Byt språk mellan svenska och engelska">
+          <span data-i18n="languageHint">SPRÅK</span>
+          <strong data-i18n="languageButton">SV / EN</strong>
+        </button>
+
+        <section class="menu-content" aria-label="Cosmic Run meny">
+          <h1 class="menu-title">COSMIC RUN</h1>
+
+          <div class="menu-panels">
+            <button id="play-button" class="menu-panel" type="button">
+              <span data-i18n="play">SPELA</span>
+              <small data-i18n="playHint">SPACE ELLER KLICKA</small>
+            </button>
+
+            <button id="instructions-button" class="menu-panel" type="button">
+              <span data-i18n="instructions">INSTRUKTIONER</span>
+              <small data-i18n="instructionsHint">KLICKA HÄR FÖR ATT LÄSA HUR DU SPELAR</small>
+            </button>
+          </div>
+
+          <img class="menu-character" src="/assets/original/player/run/1.png" alt="" />
+
+          <p id="high-score-label" class="menu-high-score">HÖGSTA POÄNG: 0</p>
+          <p class="menu-escape" data-i18n="escMenu">ESC I SPELET TAR DIG TILL MENYN</p>
+        </section>
+      </div>
+
+      <p id="status" class="status" aria-live="polite">Laddar originalassets…</p>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,236 @@
+@font-face {
+  font-family: "Cosmic";
+  src: url("/assets/original/font/stormfaze.ttf") format("truetype");
+  font-display: swap;
+}
+
+:root {
+  color: #eaffff;
+  background: #01050d;
+  font-family: Cosmic, Impact, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background: #01050d;
+}
+
+button {
+  font: inherit;
+}
+
+.game-shell {
+  width: min(100vw, 1280px);
+  padding: 12px;
+  position: relative;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 24px);
+  margin: auto;
+  cursor: pointer;
+  touch-action: manipulation;
+  background: #01050d;
+  box-shadow: 0 0 0 1px #0d3b59, 0 0 44px rgba(0, 201, 255, 0.13);
+}
+
+.menu-ui {
+  position: absolute;
+  inset: 12px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.menu-ui[hidden] {
+  display: none;
+}
+
+.menu-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: clamp(2.4rem, 7.5vw, 5rem);
+  text-align: center;
+}
+
+.menu-title {
+  margin: 0 0 clamp(2rem, 5vw, 4.2rem);
+  color: #effeff;
+  font-size: clamp(2.6rem, 7vw, 4.5rem);
+  line-height: 0.92;
+  text-shadow: 0 0 16px rgba(177, 246, 255, 0.2);
+}
+
+.menu-panels {
+  width: min(48.5rem, 68%);
+  display: grid;
+  gap: clamp(1rem, 2.8vw, 1.75rem);
+  z-index: 2;
+}
+
+.menu-panel {
+  min-height: clamp(5.2rem, 11vw, 8.25rem);
+  border: 2px solid rgba(77, 220, 255, 0.95);
+  border-radius: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  color: #effeff;
+  background: linear-gradient(135deg, rgba(8, 72, 123, 0.95), rgba(4, 32, 63, 0.96) 52%, rgba(9, 93, 144, 0.9));
+  box-shadow: 0 0 22px rgba(0, 191, 255, 0.7), inset 0 0 18px rgba(92, 223, 255, 0.1);
+  cursor: pointer;
+  pointer-events: auto;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.menu-panel:hover,
+.menu-panel:focus-visible,
+.language-button:hover,
+.language-button:focus-visible {
+  outline: none;
+  border-color: #effeff;
+  box-shadow: 0 0 28px rgba(126, 235, 255, 0.92), inset 0 0 24px rgba(126, 235, 255, 0.16);
+}
+
+.menu-panel span {
+  font-size: clamp(1.55rem, 3vw, 2.1rem);
+  line-height: 1;
+}
+
+.menu-panel small {
+  max-width: 86%;
+  color: #a7e9ff;
+  font-size: clamp(0.82rem, 1.55vw, 1rem);
+  line-height: 1.2;
+}
+
+.menu-character {
+  position: absolute;
+  top: 37%;
+  left: 61%;
+  width: clamp(5.8rem, 13.5vw, 10.9rem);
+  filter: drop-shadow(0 0 14px rgba(91, 223, 255, 0.74));
+  transform: translate(-50%, -50%);
+  animation: menu-float 2.6s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.menu-high-score {
+  margin: clamp(1.8rem, 4vw, 3.2rem) 0 0;
+  color: #a7e9ff;
+  font-size: clamp(1.15rem, 2.35vw, 1.45rem);
+  line-height: 1;
+}
+
+.menu-escape {
+  margin: 1.2rem 0 0;
+  color: #a7e9ff;
+  font-size: clamp(0.8rem, 1.65vw, 1rem);
+  line-height: 1;
+}
+
+.language-button {
+  position: absolute;
+  top: clamp(1rem, 3vw, 2rem);
+  right: clamp(1rem, 3vw, 2rem);
+  width: clamp(7.2rem, 12vw, 9.6rem);
+  min-height: 2.75rem;
+  border: 2px solid rgba(118, 229, 255, 0.9);
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.18rem;
+  color: #effeff;
+  background: rgba(3, 25, 50, 0.82);
+  box-shadow: 0 0 14px rgba(67, 219, 255, 0.55);
+  cursor: pointer;
+  pointer-events: auto;
+  text-align: center;
+}
+
+.language-button span {
+  color: #a7e9ff;
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.language-button strong {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.language-button::after {
+  content: "";
+  width: 0.48rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: #69e7ff;
+  box-shadow: 0 0 10px rgba(105, 231, 255, 0.88);
+  transform: translateX(-1.75rem);
+}
+
+.language-button[data-active-language="en"]::after {
+  transform: translateX(1.75rem);
+}
+
+.status {
+  position: absolute;
+  inset: auto 0 50%;
+  margin: 0;
+  text-align: center;
+  color: #dffcff;
+  font-size: clamp(0.85rem, 1.7vw, 1.25rem);
+  letter-spacing: 0.06em;
+}
+
+@keyframes menu-float {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) rotate(-1.6deg);
+  }
+
+  50% {
+    transform: translate(-50%, calc(-50% - 0.35rem)) rotate(1.4deg);
+  }
+}
+
+@media (max-width: 680px) {
+  .game-shell {
+    padding: 0;
+  }
+
+  canvas {
+    max-height: 100vh;
+  }
+
+  .menu-ui {
+    inset: 0;
+  }
+
+  .menu-panels {
+    width: min(34rem, 84%);
+  }
+
+  .menu-character {
+    left: 66%;
+  }
+}
